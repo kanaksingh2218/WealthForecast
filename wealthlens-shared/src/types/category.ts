@@ -1,0 +1,20 @@
+import { CategoryCode } from '../constants/categoryTaxonomy';
+import { CurrencyCode } from '../constants/currencyCodes';
+
+export interface CategorySummary {
+  category: CategoryCode;
+  totalAmount: string; // Decimal string
+  currency: CurrencyCode;
+  transactionCount: number;
+  percentOfIncome: number;
+  trend: 'up' | 'down' | 'stable';
+}
+
+export interface MonthlySummary {
+  month: number;
+  year: number;
+  totalIncome: string; // Decimal string
+  totalExpenses: string; // Decimal string
+  netSavings: string; // Decimal string
+  savingsRate: number;
+}

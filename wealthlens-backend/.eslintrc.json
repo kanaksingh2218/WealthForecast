@@ -1,0 +1,40 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "rules": {},
+  "overrides": [
+    {
+      "files": ["src/services/**/*.ts", "src/aggregations/**/*.ts"],
+      "rules": {
+        "no-restricted-globals": [
+          "error",
+          {
+            "name": "parseFloat",
+            "message": "Use Decimal.js for monetary arithmetic instead of parseFloat."
+          },
+          {
+            "name": "Number",
+            "message": "Use Decimal.js for monetary arithmetic instead of Number constructor."
+          }
+        ],
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "BinaryExpression[operator='+']",
+            "message": "Arithmetic '+' is banned in financial modules. Use Decimal.js .plus() instead."
+          },
+          {
+            "selector": "CallExpression[callee.name='parseFloat']",
+            "message": "parseFloat is banned in financial modules. Use Decimal.js instead."
+          },
+          {
+            "selector": "NewExpression[callee.name='Number']",
+            "message": "Number constructor is banned in financial modules. Use Decimal.js instead."
+          }
+        ]
+      }
+    }
+  ]
+}
