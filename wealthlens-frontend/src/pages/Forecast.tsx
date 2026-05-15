@@ -12,6 +12,7 @@ export const Forecast: React.FC = () => {
   const [currentComputeResult, setCurrentComputeResult] = React.useState<any>(null);
   const [scenarioName, setScenarioName] = React.useState('');
   const [lastInputs, setLastInputs] = React.useState<any>(null);
+  const [chartScenarios, setChartScenarios] = React.useState<any[]>([]);
 
   const handleCompute = async (inputs: any) => {
     setLastInputs(inputs);
@@ -21,31 +22,11 @@ export const Forecast: React.FC = () => {
 
   const handleSave = async () => {
     if (!scenarioName || !lastInputs) return;
-    await saveScenario.mutateAsync({
-      name: scenarioName,
-      inputs: lastInputs,
-      isBaseline: scenarios.data?.data?.length === 0,
-    });
+    await saveScenario.mutateAsync({ name: scenarioName, inputs: lastInputs, isBaseline: scenarios.data?.data?.length === 0 });
     setScenarioName('');
   };
 
-  const toggleScenario = (id: string) => {
-    setSelectedIds((prev) => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id].slice(-3)
-    );
-  };
-
-  // Prepare chart data: merge current result and selected scenarios
-  const selectedScenarios = scenarios.data?.data
-    ?.filter((s: any) => selectedIds.includes(s._id))
-    .map((s: any) => ({
-      ...s,
-      points: computeForecast.mutateAsync(s.inputs).then(r => r.data.points) // This is tricky with mutation
-    }));
-
-  // Actually we should pre-compute or use a different hook for chart data
-  // For simplicity now, let's just use the scenarios that we manually compute
-  const [chartScenarios, setChartScenarios] = React.useState<any[]>([]);
+  const toggleScenario = (id: string) => setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id].slice(-3));
 
   React.useEffect(() => {
     const fetchSelected = async () => {
@@ -54,7 +35,6 @@ export const Forecast: React.FC = () => {
         else setChartScenarios([]);
         return;
       }
-
       const results = await Promise.all(selectedIds.map(async (id) => {
         const s = scenarios.data.data.find((x: any) => x._id === id);
         const r = await computeForecast.mutateAsync(s.inputs);
@@ -66,51 +46,48 @@ export const Forecast: React.FC = () => {
   }, [selectedIds, scenarios.data, currentComputeResult]);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold">Wealth Forecast</h2>
+    <div style={{ maxWidth: 1200, margin: '0 auto' }} className="animate-fadeUp">
+      <div style={{ marginBottom: 28 }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>Wealth Forecast</h1>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Model your financial future across multiple scenarios.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <WealthForecastChart 
-            scenarios={chartScenarios} 
-            isLoading={computeForecast.isPending} 
-          />
-          
-          <ScenarioComparison scenarios={chartScenarios} />
-
-          <ScenarioForm onSubmit={handleCompute} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="wl-card" style={{ padding: 20 }}>
+            <WealthForecastChart scenarios={chartScenarios} isLoading={computeForecast.isPending} />
+          </div>
+          {chartScenarios.length > 0 && (
+            <div className="wl-card" style={{ padding: 20 }}>
+              <ScenarioComparison scenarios={chartScenarios} />
+            </div>
+          )}
+          <div className="wl-card" style={{ padding: 20 }}>
+            <div style={{ marginBottom: 16 }}>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>Configure Scenario</h3>
+              <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Adjust inputs to model different financial outcomes.</p>
+            </div>
+            <ScenarioForm onSubmit={handleCompute} />
+          </div>
         </div>
 
-        <div className="space-y-6">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {currentComputeResult && (
-            <div className="bg-gray-800 p-6 rounded-2xl border border-gray-700 space-y-4">
-              <h3 className="text-lg font-bold">Save this scenario</h3>
-              <input 
-                type="text"
-                placeholder="Scenario name (e.g. Early Retirement)"
-                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2"
-                value={scenarioName}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setScenarioName(e.target.value)}
-              />
-              <button 
-                onClick={handleSave}
-                disabled={!scenarioName || saveScenario.isPending}
-                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 py-2 rounded-lg font-bold transition-all"
-              >
-                <Save size={18} />
-                Save Scenario
+            <div className="wl-card" style={{ padding: 20 }}>
+              <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 12 }}>Save Scenario</h3>
+              <input type="text" placeholder="e.g. Early Retirement" className="wl-input" style={{ marginBottom: 10 }} value={scenarioName} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setScenarioName(e.target.value)} />
+              <button onClick={handleSave} disabled={!scenarioName || saveScenario.isPending} className="wl-btn-primary" style={{ width: '100%', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 13 }}>
+                <Save size={14} /> Save Scenario
               </button>
             </div>
           )}
-
-          <ScenarioList 
-            scenarios={scenarios.data?.data || []}
-            selectedIds={selectedIds}
-            onSelect={toggleScenario}
-            onDelete={(id) => deleteScenario.mutate(id)}
-          />
+          <div className="wl-card" style={{ padding: 20 }}>
+            <div style={{ marginBottom: 12 }}>
+              <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 }}>Saved Scenarios</h3>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Select up to 3 to compare</p>
+            </div>
+            <ScenarioList scenarios={scenarios.data?.data || []} selectedIds={selectedIds} onSelect={toggleScenario} onDelete={(id) => deleteScenario.mutate(id)} />
+          </div>
         </div>
       </div>
     </div>

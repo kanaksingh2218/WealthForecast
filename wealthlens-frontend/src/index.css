@@ -1,28 +1,82 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-base: #080B14;
+  --bg-card: rgba(255,255,255,0.03);
+  --bg-card-hover: rgba(255,255,255,0.05);
+  --border: rgba(255,255,255,0.07);
+  --border-active: rgba(59,130,246,0.5);
+  --text-primary: #F0F4FF;
+  --text-secondary: rgba(255,255,255,0.45);
+  --text-muted: rgba(255,255,255,0.25);
+  --accent-blue: #3B82F6;
+  --accent-indigo: #6366F1;
+  --accent-green: #10B981;
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}
 
 html, body, #root {
   width: 100%;
   min-height: 100vh;
-  background: #080B14;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+.wl-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.wl-card:hover { border-color: rgba(255,255,255,0.1); background: var(--bg-card-hover); }
+
+.wl-btn-primary {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo));
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 500;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(59,130,246,0.25);
+}
+.wl-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(59,130,246,0.4); }
+.wl-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.wl-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 14px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: var(--font-body);
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+.wl-input::placeholder { color: var(--text-muted); }
+.wl-input:focus { border-color: var(--border-active); background: rgba(59,130,246,0.04); box-shadow: 0 0 0 3px rgba(59,130,246,0.08); }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse-slow { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+.animate-fadeUp { animation: fadeUp 0.5s ease forwards; }

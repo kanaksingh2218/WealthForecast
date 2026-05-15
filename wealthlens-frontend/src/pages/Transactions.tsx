@@ -2,66 +2,44 @@ import React from 'react';
 import { TransactionFilters } from '../components/forms/TransactionFilters';
 import { TransactionTable } from '../components/ui/TransactionTable';
 import { useTransactions } from '../hooks/useTransactions';
-import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const Transactions: React.FC = () => {
-  const [filters, setFilters] = React.useState({
-    page: 1,
-    limit: 50,
-    search: '',
-    dateFrom: '',
-    dateTo: '',
-    isTransfer: 'false',
-  });
-
+  const [filters, setFilters] = React.useState({ page: 1, limit: 50, search: '', dateFrom: '', dateTo: '', isTransfer: 'false' });
   const { data, isLoading, refetch } = useTransactions(filters);
-
-  const handleFilterChange = (newFilters: any) => {
-    setFilters((prev) => ({ ...prev, ...newFilters, page: 1 }));
-  };
-
-  const handlePageChange = (newPage: number) => {
-    setFilters((prev) => ({ ...prev, page: newPage }));
-  };
+  const handleFilterChange = (f: any) => setFilters(prev => ({ ...prev, ...f, page: 1 }));
+  const handlePageChange = (p: number) => setFilters(prev => ({ ...prev, page: p }));
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold">Transactions</h2>
-        <div className="text-sm text-gray-500">
-          Showing {data?.data?.length || 0} of {data?.meta?.total || 0} transactions
+    <div style={{ maxWidth: 1100, margin: '0 auto' }} className="animate-fadeUp">
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>Transactions</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>All your financial activity in one place.</p>
+        </div>
+        <div style={{ padding: '6px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+          {data?.data?.length || 0} of {data?.meta?.total || 0} transactions
         </div>
       </div>
 
-      <TransactionFilters onFilterChange={handleFilterChange} />
+      <div className="wl-card" style={{ padding: 16, marginBottom: 16 }}>
+        <TransactionFilters onFilterChange={handleFilterChange} />
+      </div>
 
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-24 gap-4">
-          <Loader2 className="animate-spin text-blue-500" size={48} />
-          <p className="text-gray-400">Loading transactions...</p>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '80px 0', gap: 16 }}>
+          <div style={{ width: 32, height: 32, border: '2px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--accent-blue)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Loading transactions...</p>
         </div>
       ) : (
         <>
-          <TransactionTable transactions={data?.data || []} onUpdate={refetch} />
-          
-          <div className="flex items-center justify-center gap-4 py-4">
-            <button
-              disabled={filters.page === 1}
-              onClick={() => handlePageChange(filters.page - 1)}
-              className="p-2 border border-gray-700 rounded-lg disabled:opacity-30 hover:bg-gray-800"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <span className="text-sm font-medium">
-              Page {filters.page} of {data?.meta?.totalPages || 1}
-            </span>
-            <button
-              disabled={filters.page >= (data?.meta?.totalPages || 1)}
-              onClick={() => handlePageChange(filters.page + 1)}
-              className="p-2 border border-gray-700 rounded-lg disabled:opacity-30 hover:bg-gray-800"
-            >
-              <ChevronRight size={20} />
-            </button>
+          <div className="wl-card" style={{ overflow: 'hidden' }}>
+            <TransactionTable transactions={data?.data || []} onUpdate={refetch} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '20px 0' }}>
+            <button disabled={filters.page === 1} onClick={() => handlePageChange(filters.page - 1)} style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--text-primary)', cursor: 'pointer', opacity: filters.page === 1 ? 0.3 : 1, display: 'flex', alignItems: 'center' }}><ChevronLeft size={16} /></button>
+            <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>Page <strong style={{ color: 'var(--text-primary)' }}>{filters.page}</strong> of {data?.meta?.totalPages || 1}</span>
+            <button disabled={filters.page >= (data?.meta?.totalPages || 1)} onClick={() => handlePageChange(filters.page + 1)} style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--text-primary)', cursor: 'pointer', opacity: filters.page >= (data?.meta?.totalPages || 1) ? 0.3 : 1, display: 'flex', alignItems: 'center' }}><ChevronRight size={16} /></button>
           </div>
         </>
       )}

@@ -5,17 +5,19 @@ import { CategoryCode } from 'wealthlens-shared';
 
 export const getTransactions = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).user?.id || 'default_user';
+    const userId = (req as any).user?.id;
+    if (!userId) return res.json({ success: true, data: [], meta: { page: 1, limit: 50, total: 0, totalPages: 0 } });
+
     const page = parseInt(req.query.page as string) || 1;
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 200);
     const skip = (page - 1) * limit;
 
     const query: any = { userId };
 
-    // Filtering
-    if (req.query.category) {
-      const categories = Array.isArray(req.query.category) ? req.query.category : [req.query.category];
-      query.category = { $in: categories };
+    if (req.query.isTransfer === 'true') {
+      query.isTransfer = true;
+    } else if (req.query.isTransfer === 'false') {
+      query.isTransfer = false;
     }
 
     if (req.query.dateFrom || req.query.dateTo) {
@@ -35,7 +37,7 @@ export const getTransactions = async (req: Request, res: Response, next: NextFun
     if (req.query.isTransfer !== undefined) {
       query.isTransfer = req.query.isTransfer === 'true';
     } else {
-      query.isTransfer = false; // Default: exclude transfers
+      query.isTransfer = false;
     }
 
     const [transactions, total] = await Promise.all([
@@ -46,12 +48,7 @@ export const getTransactions = async (req: Request, res: Response, next: NextFun
     res.json({
       success: true,
       data: transactions,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
     });
   } catch (error) {
     next(error);
@@ -61,7 +58,9 @@ export const getTransactions = async (req: Request, res: Response, next: NextFun
 export const updateTransaction = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const userId = (req as any).user?.id || 'default_user';
+    const userId = (req as any).user?.id;
+    if (!userId) return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Not authenticated' } });
+
     const { category, subcategory, merchantName } = req.body;
 
     const transaction = await Transaction.findOneAndUpdate(
@@ -74,11 +73,10 @@ export const updateTransaction = async (req: Request, res: Response, next: NextF
       return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Transaction not found' } });
     }
 
-    // Learn rule if category is provided
     if (category) {
       await CategorizationService.learnRule(
         userId,
-        transaction.description, // Use description as pattern
+        transaction.description,
         category as CategoryCode,
         subcategory,
         merchantName

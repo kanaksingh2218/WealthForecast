@@ -9,19 +9,14 @@ export const uploadImport = async (req: Request, res: Response, next: NextFuncti
     if (!req.file) {
       return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'No file uploaded' } });
     }
+    const userId = (req as any).user?.id;
+    if (!userId) return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Not authenticated' } });
 
-    const userId = (req as any).user?.id || 'default_user';
-    
-    // 1. ClamAV Scan (mocked)
     await SecurityService.scanFile(req.file.buffer);
-
-    // 2. Magic Byte Validation
     const format = SecurityService.validateMagicBytes(req.file.buffer);
 
     if (format === 'CSV' && !req.body.mapping) {
-      // If CSV and no mapping, return sample rows for UI mapper
       const content = req.file.buffer.toString('utf-8');
-      // Just return first 5 rows and headers
       const lines = content.split('\n').slice(0, 6);
       return res.json({
         success: true,
@@ -29,7 +24,7 @@ export const uploadImport = async (req: Request, res: Response, next: NextFuncti
           format: 'CSV',
           needsMapping: true,
           sample: lines,
-          headers: lines[0].split(','),
+          headers: lines[0].split(',').map((h: string) => h.trim()),
         },
       });
     }
@@ -44,11 +39,7 @@ export const uploadImport = async (req: Request, res: Response, next: NextFuncti
 
     res.json({
       success: true,
-      data: {
-        format,
-        needsMapping: false,
-        transactions: previewRows,
-      },
+      data: { format, needsMapping: false, transactions: previewRows },
     });
   } catch (error) {
     next(error);
@@ -58,27 +49,31 @@ export const uploadImport = async (req: Request, res: Response, next: NextFuncti
 export const confirmImport = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { transactions } = req.body;
-    const userId = (req as any).user?.id || 'default_user';
+    const userId = (req as any).user?.id;
+    if (!userId) return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Not authenticated' } });
 
     if (!Array.isArray(transactions)) {
       return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Transactions array required' } });
     }
 
-    // Filter out duplicates and invalid ones
     const toSave = transactions
       .filter((t: any) => !t.isDuplicate)
       .map((t: any) => ({
         ...t,
         userId,
+        currency: t.currency || 'INR',
+        source: t.source || 'csv',
+        isTransfer: t.isTransfer || false,
+        category: t.category || 'Uncategorized',
+        amount: String(t.amount || '0'),
       }));
 
     if (toSave.length === 0) {
       return res.status(400).json({ success: false, error: { code: 'DUPLICATE_TRANSACTIONS', message: 'All transactions are duplicates' } });
     }
 
-    const saved = await Transaction.insertMany(toSave);
+    const saved = await Transaction.insertMany(toSave, { ordered: false });
 
-    // Invalidate analytics cache
     await CacheService.invalidatePattern(`wl:summary:${userId}:*`);
     await CacheService.invalidatePattern(`wl:categories:${userId}:*`);
 

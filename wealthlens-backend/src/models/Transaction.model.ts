@@ -25,6 +25,7 @@ const TransactionSchema = new Schema<ITransactionDocument>(
     currency: {
       type: String,
       required: true,
+      default: 'INR',
       enum: ['USD', 'EUR', 'GBP', 'INR', 'JPY', 'CAD', 'AUD'],
     },
     description: {
@@ -69,17 +70,17 @@ const TransactionSchema = new Schema<ITransactionDocument>(
     toJSON: {
       transform: (_, ret) => {
         (ret as any).id = ret._id;
-         delete (ret as any)._id;
-         delete (ret as any).__v;        
-         return ret;
+        delete (ret as any)._id;
+        delete (ret as any).__v;
+        return ret;
       },
     },
   }
 );
 
-// Critical Compound Index
+
 TransactionSchema.index({ userId: 1, date: -1, category: 1 });
-// Duplicate detection index
+
 TransactionSchema.index({ userId: 1, hash: 1 }, { unique: true });
 
 export const Transaction = mongoose.model<ITransactionDocument>('Transaction', TransactionSchema);

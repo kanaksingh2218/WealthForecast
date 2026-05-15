@@ -4,14 +4,13 @@ import { env } from '../config/env';
 import { AppError, ErrorCode } from '../middleware/error.middleware';
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.cookies.accessToken;
-
+  const token = req.cookies?.accessToken;
   if (!token) {
     return next(new AppError(ErrorCode.UNAUTHORIZED, 'Unauthorized', 401));
   }
-
   try {
-    const decoded = jwt.verify(token, env.JWT_PUBLIC_KEY, { algorithms: ['RS256'] });
+    const secret = env.JWT_PRIVATE_KEY || env.COOKIE_SECRET;
+    const decoded = jwt.verify(token, secret);
     (req as any).user = decoded;
     next();
   } catch (error) {

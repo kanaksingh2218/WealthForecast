@@ -8,66 +8,56 @@ import { Link } from 'react-router-dom';
 
 export const Dashboard: React.FC = () => {
   const { summary, categories, isLoading } = useAnalytics();
-
   const latestMonth = summary.data?.data?.[summary.data.data.length - 1];
   const previousMonth = summary.data?.data?.[summary.data.data.length - 2];
-
   const calculateTrend = (current: string, previous: string) => {
     const curr = parseFloat(current || '0');
     const prev = parseFloat(previous || '0');
     if (prev === 0) return 0;
     return ((curr - prev) / prev) * 100;
   };
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
-      <div className="flex flex-col gap-2">
-        <h2 className="text-3xl font-bold">Financial Overview</h2>
-        <p className="text-gray-400">Track your income, expenses, and savings at a glance.</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPICard 
-          label="Total Income" 
-          value={latestMonth?.totalIncome || '0'} 
-          trend={latestMonth && previousMonth ? calculateTrend(latestMonth.totalIncome, previousMonth.totalIncome) : undefined}
-          isLoading={isLoading} 
-        />
-        <KPICard 
-          label="Total Expenses" 
-          value={latestMonth?.totalExpenses || '0'} 
-          trend={latestMonth && previousMonth ? calculateTrend(latestMonth.totalExpenses, previousMonth.totalExpenses) : undefined}
-          isLoading={isLoading} 
-        />
-        <KPICard 
-          label="Net Savings" 
-          value={latestMonth?.netSavings || '0'} 
-          isLoading={isLoading} 
-        />
-        <KPICard 
-          label="Savings Rate" 
-          value={`${latestMonth?.savingsRate?.toFixed(1) || '0'}%`} 
-          currency="" // Not a currency
-          isLoading={isLoading} 
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <IncomeExpenseBarChart data={summary.data?.data || []} isLoading={isLoading} />
-        <SpendingPieChart data={categories.data?.data || []} isLoading={isLoading} />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1">
-          <SavingsGauge savingsRate={latestMonth?.savingsRate || 0} isLoading={isLoading} />
+    <div style={{ maxWidth: 1200, margin: '0 auto' }} className="animate-fadeUp">
+      <div style={{ marginBottom: 28, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>{greeting}.</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Here is your financial snapshot for this month.</p>
         </div>
-        <div className="lg:col-span-2 bg-gray-800 p-6 rounded-2xl border border-gray-700 flex items-center justify-center">
-          <div className="text-center">
-            <h3 className="text-lg font-bold mb-2">Wealth Forecast Preview</h3>
-            <p className="text-gray-400 text-sm mb-6">Complete your onboarding to see your 10-year wealth projection.</p>
-            <Link to="/forecast" className="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-lg font-medium transition-colors">
-              Set Forecast Inputs
-            </Link>
+        <Link to="/import" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 10, fontSize: 13, fontWeight: 500, background: 'linear-gradient(135deg, var(--accent-blue), var(--accent-indigo))', color: '#fff', textDecoration: 'none', boxShadow: '0 4px 16px rgba(59,130,246,0.25)' }}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v8M4 7l3 3 3-3M2 12h10" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          Import Data
+        </Link>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 20 }}>
+        <KPICard label="Total Income" value={latestMonth?.totalIncome || '0'} trend={latestMonth && previousMonth ? calculateTrend(latestMonth.totalIncome, previousMonth.totalIncome) : undefined} isLoading={isLoading} />
+        <KPICard label="Total Expenses" value={latestMonth?.totalExpenses || '0'} trend={latestMonth && previousMonth ? calculateTrend(latestMonth.totalExpenses, previousMonth.totalExpenses) : undefined} isLoading={isLoading} />
+        <KPICard label="Net Savings" value={latestMonth?.netSavings || '0'} isLoading={isLoading} />
+        <KPICard label="Savings Rate" value={(latestMonth?.savingsRate?.toFixed(1) || '0') + '%'} isCurrency={false} isLoading={isLoading} />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+        <div className="wl-card" style={{ padding: 20 }}><IncomeExpenseBarChart data={summary.data?.data || []} isLoading={isLoading} /></div>
+        <div className="wl-card" style={{ padding: 20 }}><SpendingPieChart data={categories.data?.data || []} isLoading={isLoading} /></div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16 }}>
+        <div className="wl-card" style={{ padding: 20 }}><SavingsGauge savingsRate={latestMonth?.savingsRate || 0} isLoading={isLoading} /></div>
+        <div className="wl-card" style={{ padding: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+          <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.06 }} viewBox="0 0 400 120" preserveAspectRatio="none">
+            <path d="M0 80 L50 70 L100 75 L150 55 L200 45 L250 30 L300 20 L350 10 L400 5" stroke="#3B82F6" strokeWidth="2" fill="none"/>
+            <path d="M0 80 L50 70 L100 75 L150 55 L200 45 L250 30 L300 20 L350 10 L400 5 L400 120 L0 120Z" fill="#3B82F6"/>
+          </svg>
+          <div style={{ textAlign: 'center', position: 'relative' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 14L7 10L10 13L14 8L17 5" stroke="#3B82F6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </div>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>10-Year Wealth Forecast</h3>
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 16, maxWidth: 280 }}>See where your wealth will be with compound growth projections.</p>
+            <Link to="/forecast" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 20px', borderRadius: 10, fontSize: 13, fontWeight: 500, background: 'linear-gradient(135deg, var(--accent-blue), var(--accent-indigo))', color: '#fff', textDecoration: 'none', boxShadow: '0 4px 16px rgba(59,130,246,0.25)' }}>Run Forecast</Link>
           </div>
         </div>
       </div>

@@ -12,10 +12,8 @@ import authRoutes from './routes/auth.routes';
 
 const app = express();
 
-// Connect Database
 connectDB();
 
-// Middleware
 app.use(cors({
   origin: env.ALLOWED_ORIGINS.split(','),
   credentials: true,
@@ -29,14 +27,12 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/forecast', forecastRoutes);
 app.use('/api/auth', authRoutes);
 
-// Routes Stub
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Error Handling
 app.use(errorHandler);
 
 app.listen(env.PORT, () => {
-  console.log(`🚀 Server running in ${env.NODE_ENV} mode on port ${env.PORT}`);
+  console.log(`Server running in ${env.NODE_ENV} mode on port ${env.PORT}`);
 });

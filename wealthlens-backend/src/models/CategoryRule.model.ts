@@ -45,7 +45,6 @@ const CategoryRuleSchema = new Schema<ICategoryRule>(
   }
 );
 
-// Unique rule per user and pattern
 CategoryRuleSchema.index({ userId: 1, pattern: 1 }, { unique: true });
 
 export const CategoryRule = mongoose.model<ICategoryRule>('CategoryRule', CategoryRuleSchema);

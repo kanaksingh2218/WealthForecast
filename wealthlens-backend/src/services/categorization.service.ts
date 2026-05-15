@@ -9,9 +9,7 @@ export interface CategorizationResult {
 }
 
 export class CategorizationService {
-  /**
-   * Categorizes a transaction based on description/merchant name
-   */
+
   static async categorize(
     userId: string,
     description: string,
@@ -40,22 +38,18 @@ export class CategorizationService {
           category: rule.category,
           subcategory: rule.subcategory,
           merchantName: rule.merchantName || merchantName,
-          confidence: 1.0, // Rule match is high confidence
+          confidence: 1.0,
         };
       }
     }
 
-    // Phase 2: ML Tagging would go here. 
-    // Phase 1 fallback: Uncategorized
     return {
       category: 'Uncategorized',
-      confidence: 0.5, // Low confidence flags for review
+      confidence: 0.5,
     };
   }
 
-  /**
-   * Saves a rule for future use when a user categorizes a transaction
-   */
+
   static async learnRule(
     userId: string,
     pattern: string,

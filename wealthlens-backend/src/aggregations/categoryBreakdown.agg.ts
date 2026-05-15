@@ -1,24 +1,17 @@
 import mongoose from 'mongoose';
 
 export const getCategoryBreakdownPipeline = (userId: string, dateFrom?: Date, dateTo?: Date) => {
-  const match: any = {
-    userId: new mongoose.Types.ObjectId(userId),
-    isTransfer: false,
-    amount: { $lt: "0" } // Only expenses
-  };
-
-  if (dateFrom || dateTo) {
-    match.date = {};
-    if (dateFrom) match.date.$gte = dateFrom;
-    if (dateTo) match.date.$lte = dateTo;
-  }
-
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) return [];
+  const match: any = { userId: new mongoose.Types.ObjectId(userId), isTransfer: false };
+  if (dateFrom) match.date = { ...match.date, $gte: dateFrom };
+  if (dateTo) match.date = { ...match.date, $lte: dateTo };
   return [
     { $match: match },
+    { $addFields: { amountNum: { $toDouble: '$amount' } } },
     {
       $group: {
         _id: '$category',
-        totalAmount: { $sum: { $abs: { $toDouble: '$amount' } } },
+        totalAmount: { $sum: { $abs: '$amountNum' } },
         transactionCount: { $sum: 1 },
       },
     },

@@ -1,29 +1,15 @@
 import mongoose from 'mongoose';
 
 export const getMonthlySummaryPipeline = (userId: string) => {
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) return [];
   return [
-    {
-      $match: {
-        userId: new mongoose.Types.ObjectId(userId),
-        isTransfer: false,
-      },
-    },
+    { $match: { userId: new mongoose.Types.ObjectId(userId), isTransfer: false } },
+    { $addFields: { amountNum: { $toDouble: '$amount' } } },
     {
       $group: {
-        _id: {
-          month: { $month: '$date' },
-          year: { $year: '$date' },
-        },
-        totalIncome: {
-          $sum: {
-            $cond: [{ $gt: [{ $toDouble: '$amount' }, 0] }, { $toDouble: '$amount' }, 0],
-          },
-        },
-        totalExpenses: {
-          $sum: {
-            $cond: [{ $lt: [{ $toDouble: '$amount' }, 0] }, { $abs: { $toDouble: '$amount' } }, 0],
-          },
-        },
+        _id: { month: { $month: '$date' }, year: { $year: '$date' } },
+        totalIncome: { $sum: { $cond: [{ $gt: ['$amountNum', 0] }, '$amountNum', 0] } },
+        totalExpenses: { $sum: { $cond: [{ $lt: ['$amountNum', 0] }, { $abs: '$amountNum' }, 0] } },
       },
     },
     {

@@ -47,9 +47,9 @@ const AccountSchema = new Schema<IAccountDocument>(
     timestamps: true,
     toJSON: {
       transform: (_, ret) => {
-        ret.accountId = ret._id;
-        delete ret._id;
-        delete ret.__v;
+        (ret as any).accountId = ret._id;
+        delete (ret as any)._id;
+        delete (ret as any).__v;
         return ret;
       },
     },

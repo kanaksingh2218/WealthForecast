@@ -1,28 +1,31 @@
 import React from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FileDropzone } from '../components/ui/FileDropzone';
 import { CSVColumnMapper } from '../components/forms/CSVColumnMapper';
 import { ImportPreviewTable } from '../components/ui/ImportPreviewTable';
 import { uploadFile, confirmTransactions } from '../api/import.api';
-import { CheckCircle2, Loader2 } from 'lucide-react';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 type State = 'IDLE' | 'MAPPING' | 'PREVIEW' | 'CONFIRMING' | 'DONE';
+const STEPS = ['Upload', 'Map Columns', 'Preview', 'Done'];
+const STATE_IDX: Record<State, number> = { IDLE: 0, MAPPING: 1, PREVIEW: 2, CONFIRMING: 2, DONE: 3 };
 
 export const Import: React.FC = () => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   const [state, setState] = React.useState<State>('IDLE');
   const [file, setFile] = React.useState<File | null>(null);
   const [headers, setHeaders] = React.useState<string[]>([]);
   const [mapping, setMapping] = React.useState<any>(null);
   const [transactions, setTransactions] = React.useState<any[]>([]);
-  const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  const handleFileSelect = async (selectedFile: File) => {
-    setFile(selectedFile);
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await uploadFile(selectedFile);
+  // 1. Upload Mutation
+  const uploadMutation = useMutation({
+    mutationFn: (selectedFile: File) => uploadFile(selectedFile),
+    onSuccess: (response) => {
       if (response.data.needsMapping) {
         setHeaders(response.data.headers);
         setState('MAPPING');
@@ -30,118 +33,125 @@ export const Import: React.FC = () => {
         setTransactions(response.data.transactions);
         setState('PREVIEW');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to upload file');
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    onError: (err: any) => setError(err.response?.data?.error?.message || 'Failed to upload file'),
+  });
 
-  const handleMap = async (newMapping: any) => {
-    setMapping(newMapping);
-  };
-
-  const handleProcessCSV = async () => {
-    if (!file || !mapping) return;
-    setLoading(true);
-    try {
-      const response = await uploadFile(file, mapping);
+  // 2. Process CSV with Mapping Mutation
+  const processCSVMutation = useMutation({
+    mutationFn: () => uploadFile(file!, mapping),
+    onSuccess: (response) => {
       setTransactions(response.data.transactions);
       setState('PREVIEW');
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to process mapping');
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    onError: (err: any) => setError(err.response?.data?.error?.message || 'Failed to process mapping'),
+  });
 
-  const handleConfirm = async () => {
-    setLoading(true);
-    try {
-      await confirmTransactions(transactions);
+  // 3. Confirm Import Mutation
+  const confirmMutation = useMutation({
+    mutationFn: () => confirmTransactions(transactions),
+    onSuccess: () => {
+      // YE HAI MAGIC: Dashboard aur Transactions table ko refresh karne ka signal
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+
       setState('DONE');
-    } catch (err: any) {
+      // 3 second baad auto-dashboard par bhej do
+      setTimeout(() => navigate('/'), 3000);
+    },
+    onError: (err: any) => {
       setError(err.response?.data?.error?.message || 'Failed to confirm import');
-    } finally {
-      setLoading(false);
-    }
-  };
+      setState('PREVIEW');
+    },
+  });
+
+  const stepIdx = STATE_IDX[state];
+  const isLoading = uploadMutation.isPending || processCSVMutation.isPending || confirmMutation.isPending;
 
   return (
-    <div className="max-w-5xl mx-auto p-8">
-      <h2 className="text-3xl font-bold mb-8">Import Transactions</h2>
+    <div style={{ maxWidth: 900, margin: '0 auto' }} className="animate-fadeUp">
+      <div style={{ marginBottom: 28 }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>Import Transactions</h1>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Upload CSV, OFX, or QIF files from your bank.</p>
+      </div>
+
+      {/* Progress Stepper */}
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 28 }}>
+        {STEPS.map((step, i) => (
+          <React.Fragment key={step}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%',
+                background: i < stepIdx ? '#10B981' : i === stepIdx ? 'linear-gradient(135deg, #3B82F6, #6366F1)' : 'rgba(255,255,255,0.06)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: i <= stepIdx ? '#fff' : '#64748b', flexShrink: 0
+              }}>
+                {i < stepIdx ? <CheckCircle2 size={16} /> : i + 1}
+              </div>
+              <span style={{ fontSize: 12, fontWeight: i === stepIdx ? 500 : 400, color: i <= stepIdx ? '#fff' : '#64748b', whiteSpace: 'nowrap' }}>{step}</span>
+            </div>
+            {i < STEPS.length - 1 && <div style={{ flex: 1, height: 1, background: i < stepIdx ? '#10B981' : 'rgba(255,255,255,0.1)', margin: '0 10px', minWidth: 20 }} />}
+          </React.Fragment>
+        ))}
+      </div>
 
       {error && (
-        <div className="bg-red-900/20 border border-red-500 text-red-400 p-4 rounded-lg mb-6">
+        <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171', padding: '12px 16px', borderRadius: 10, marginBottom: 16, fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <AlertCircle size={16} />
           {error}
+          <button onClick={() => setError(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}>×</button>
         </div>
       )}
 
       {state === 'IDLE' && (
-        <FileDropzone onFileSelect={handleFileSelect} />
+        <div className="wl-card" style={{ padding: 28 }}>
+          <FileDropzone onFileSelect={(f) => { setFile(f); uploadMutation.mutate(f); }} />
+          {isLoading && <div className="mt-4 text-center text-blue-400">Processing file...</div>}
+        </div>
       )}
 
       {state === 'MAPPING' && (
-        <div className="space-y-6">
-          <CSVColumnMapper headers={headers} onMap={handleMap} />
-          <div className="flex justify-end">
+        <div className="wl-card" style={{ padding: 28 }}>
+          <h3 className="text-white mb-4">Map CSV Columns</h3>
+          <CSVColumnMapper headers={headers} onMap={setMapping} />
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 20, gap: 10 }}>
+            <button onClick={() => setState('IDLE')} className="px-4 py-2 text-gray-400">Back</button>
             <button
-              onClick={handleProcessCSV}
-              disabled={!mapping || loading}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-medium disabled:opacity-50 flex items-center gap-2"
+              onClick={() => processCSVMutation.mutate()}
+              disabled={!mapping || isLoading}
+              className="bg-blue-600 px-6 py-2 rounded-lg text-white"
             >
-              {loading && <Loader2 className="animate-spin" size={20} />}
-              Generate Preview
+              {isLoading ? 'Processing...' : 'Generate Preview'}
             </button>
           </div>
         </div>
       )}
 
       {state === 'PREVIEW' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-semibold">Preview Transactions</h3>
-            <div className="flex gap-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h3 className="text-white">Preview Import ({transactions.length} rows)</h3>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setState('IDLE')} className="px-4 py-2 text-gray-400">Cancel</button>
               <button
-                onClick={() => setState('IDLE')}
-                className="px-6 py-2 border border-gray-600 hover:bg-gray-800 rounded-lg"
+                onClick={() => confirmMutation.mutate()}
+                disabled={isLoading}
+                className="bg-green-600 px-6 py-2 rounded-lg text-white font-bold"
               >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirm}
-                disabled={loading}
-                className="px-6 py-2 bg-green-600 hover:bg-green-500 rounded-lg font-medium disabled:opacity-50 flex items-center gap-2"
-              >
-                {loading && <Loader2 className="animate-spin" size={20} />}
-                Confirm Import
+                {isLoading ? 'Confirming...' : 'Confirm Import'}
               </button>
             </div>
           </div>
-          <ImportPreviewTable transactions={transactions} />
+          <div className="wl-card"><ImportPreviewTable transactions={transactions} /></div>
         </div>
       )}
 
       {state === 'DONE' && (
-        <div className="text-center py-12 space-y-4">
-          <CheckCircle2 size={64} className="text-green-500 mx-auto" />
-          <h3 className="text-2xl font-bold">Import Complete</h3>
-          <p className="text-gray-400">Your transactions have been successfully imported and processed.</p>
-          <button
-            onClick={() => setState('IDLE')}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-medium"
-          >
-            Import More
-          </button>
-        </div>
-      )}
-
-      {loading && state === 'IDLE' && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-8 rounded-xl flex flex-col items-center gap-4">
-            <Loader2 className="animate-spin text-blue-500" size={48} />
-            <p className="text-lg font-medium">Processing your file...</p>
+        <div className="wl-card" style={{ padding: 48, textAlign: 'center' }}>
+          <div className="bg-green-500/10 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+            <CheckCircle2 size={32} className="text-green-500" />
           </div>
+          <h3 className="text-white text-2xl mb-2">Import Complete</h3>
+          <p className="text-gray-400 mb-6">Redirecting to dashboard to show your new data...</p>
         </div>
       )}
     </div>
