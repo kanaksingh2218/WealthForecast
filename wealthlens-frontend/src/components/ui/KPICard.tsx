@@ -1,6 +1,8 @@
 import React from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
+import { useSettingsStore } from '../../store/settings.store';
+
 interface Props {
   label: string;
   value: string | number;
@@ -10,10 +12,17 @@ interface Props {
   isCurrency?: boolean;
 }
 
-export const KPICard: React.FC<Props> = ({ label, value, trend, currency = 'USD', isLoading, isCurrency = true }) => {
+export const KPICard: React.FC<Props> = ({ label, value, trend, currency, isLoading, isCurrency = true }) => {
+  const globalCurrency = useSettingsStore((state) => state.currency);
+  const activeCurrency = currency || globalCurrency;
   const numericValue = typeof value === 'string' ? (parseFloat(value) || 0) : (value || 0);
-  const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency || 'USD' });
+  const formatter = new Intl.NumberFormat(activeCurrency === 'INR' ? 'en-IN' : 'en-US', { 
+    style: 'currency', 
+    currency: activeCurrency,
+    maximumFractionDigits: 0
+  });
   const displayValue = isCurrency ? formatter.format(numericValue) : value;
+
 
   if (isLoading) {
     return (

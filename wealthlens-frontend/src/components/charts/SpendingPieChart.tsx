@@ -10,8 +10,9 @@ const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'
 
 export const SpendingPieChart: React.FC<Props> = ({ data, isLoading }) => {
   if (isLoading) {
-    return <div className="h-64 bg-gray-800 rounded-xl animate-pulse"></div>;
+    return <div className="h-[400px] bg-gray-800/50 rounded-2xl border border-gray-700 animate-pulse flex items-center justify-center text-gray-600">Loading chart...</div>;
   }
+
 
   const chartData = data.map((item) => ({
     name: item.category,

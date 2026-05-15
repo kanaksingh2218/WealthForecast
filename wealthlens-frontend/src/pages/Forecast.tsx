@@ -36,11 +36,12 @@ export const Forecast: React.FC = () => {
         return;
       }
       const results = await Promise.all(selectedIds.map(async (id) => {
-        const s = scenarios.data.data.find((x: any) => x._id === id);
+        const s = scenarios.data?.data?.find((x: any) => x._id === id);
+        if (!s) return null;
         const r = await computeForecast.mutateAsync(s.inputs);
         return { name: s.name, points: r.data.points, fiDate: r.data.fiDate, inputs: s.inputs };
       }));
-      setChartScenarios(results);
+      setChartScenarios(results.filter(Boolean));
     };
     fetchSelected();
   }, [selectedIds, scenarios.data, currentComputeResult]);

@@ -9,3 +9,9 @@ export const updateTransaction = async (id: string, updates: any) => {
   const { data } = await apiClient.patch(`/transactions/${id}`, updates);
   return data;
 };
+
+export const deleteTransaction = async (id: string) => {
+  const { data } = await apiClient.delete(`/transactions/${id}`);
+  return data;
+};
+

@@ -28,9 +28,13 @@ export class AppError extends Error {
 }
 
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error(`[Error] ${err.message}`, err);
+  console.error(`[Error] ${err.message}`);
+  if (err.stack) {
+    console.error(err.stack); // LOG THE FULL STACK TRACE
+  }
 
   const statusCode = err.statusCode || 500;
+
   const code = err.code || ErrorCode.INTERNAL_ERROR;
   const message = err.message || 'An unexpected error occurred';
 

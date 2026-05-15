@@ -80,3 +80,24 @@ html, body, #root {
 @keyframes pulse-slow { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
 
 .animate-fadeUp { animation: fadeUp 0.5s ease forwards; }
+
+/* Responsive Utilities */
+.wl-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.wl-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.wl-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+@media (max-width: 1024px) {
+  .wl-grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .wl-grid-2, .wl-grid-3, .wl-grid-4 { grid-template-columns: 1fr; }
+  .wl-mobile-hide { display: none !important; }
+  .wl-main-content { padding: 16px !important; }
+}
+
+@media (max-width: 480px) {
+  h1 { font-size: 22px !important; }
+  .wl-card { padding: 16px !important; }
+}
+

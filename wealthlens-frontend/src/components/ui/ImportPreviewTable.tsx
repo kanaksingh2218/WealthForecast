@@ -18,20 +18,24 @@ export const ImportPreviewTable: React.FC<Props> = ({ transactions }) => {
           </tr>
         </thead>
         <tbody>
-          {transactions.map((t, i) => (
-            <tr key={i} className={`border-b border-gray-700 ${t.isDuplicate ? 'bg-amber-900/30' : ''}`}>
-              <td className="px-4 py-2">{format(new Date(t.date), 'MMM dd, yyyy')}</td>
-              <td className="px-4 py-2">{t.description}</td>
-              <td className="px-4 py-2 font-mono">{t.amount}</td>
-              <td className="px-4 py-2">
-                {t.isDuplicate ? (
-                  <span className="text-amber-400 text-sm">Duplicate</span>
-                ) : (
-                  <span className="text-green-400 text-sm">Ready</span>
-                )}
-              </td>
-            </tr>
-          ))}
+          {transactions.map((t, i) => {
+            const dateObj = new Date(t.date);
+            const dateStr = isNaN(dateObj.getTime()) ? 'N/A' : format(dateObj, 'MMM dd, yyyy');
+            return (
+              <tr key={i} className={`border-b border-gray-700 ${t.isDuplicate ? 'bg-amber-900/30' : ''}`}>
+                <td className="px-4 py-2">{dateStr}</td>
+                <td className="px-4 py-2">{t.description}</td>
+                <td className="px-4 py-2 font-mono">{t.amount}</td>
+                <td className="px-4 py-2">
+                  {t.isDuplicate ? (
+                    <span className="text-amber-400 text-sm">Duplicate</span>
+                  ) : (
+                    <span className="text-green-400 text-sm">Ready</span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

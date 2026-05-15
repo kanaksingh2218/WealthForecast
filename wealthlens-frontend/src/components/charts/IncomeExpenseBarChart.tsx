@@ -8,8 +8,9 @@ interface Props {
 
 export const IncomeExpenseBarChart: React.FC<Props> = ({ data, isLoading }) => {
   if (isLoading) {
-    return <div className="h-64 bg-gray-800 rounded-xl animate-pulse"></div>;
+    return <div className="h-[400px] bg-gray-800/50 rounded-2xl border border-gray-700 animate-pulse flex items-center justify-center text-gray-600">Loading chart...</div>;
   }
+
 
   const chartData = data.map((item) => ({
     name: `${item.year}-${item.month.toString().padStart(2, '0')}`,

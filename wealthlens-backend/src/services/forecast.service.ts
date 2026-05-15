@@ -22,6 +22,10 @@ export class ForecastService {
     const annualReturnRate = new Decimal(input.annualReturnRate).div(100);
     const monthlyReturnRate = annualReturnRate.div(12);
 
+    // Added Income Growth for production realism
+    const annualIncomeGrowthRate = new Decimal(input.annualIncomeGrowthRate || input.annualInflationRate).div(100);
+    const monthlyIncomeGrowthRate = annualIncomeGrowthRate.div(12);
+
     let cumulativeSavings = new Decimal(0);
     const now = new Date();
 
@@ -50,8 +54,11 @@ export class ForecastService {
 
       cumulativeSavings = cumulativeSavings.plus(monthlySavings);
 
+      // Adjust for inflation and income growth
       currentMonthlyExpenses = currentMonthlyExpenses.mul(new Decimal(1).plus(monthlyInflationRate));
+      monthlyIncome = monthlyIncome.mul(new Decimal(1).plus(monthlyIncomeGrowthRate));
     }
+
 
     return points;
   }

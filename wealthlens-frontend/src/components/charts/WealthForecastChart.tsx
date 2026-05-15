@@ -9,6 +9,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { useSettingsStore } from '../../store/settings.store';
+
 
 interface Props {
   scenarios: any[];
@@ -18,6 +20,8 @@ interface Props {
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B'];
 
 export const WealthForecastChart: React.FC<Props> = ({ scenarios, isLoading }) => {
+  const currency = useSettingsStore((state) => state.currency);
+
   if (isLoading) {
     return <div className="h-96 bg-gray-800 rounded-2xl animate-pulse"></div>;
   }
@@ -35,19 +39,22 @@ export const WealthForecastChart: React.FC<Props> = ({ scenarios, isLoading }) =
   const maxPoints = Math.max(...scenarios.map((s) => s.points.length));
 
   for (let i = 0; i < maxPoints; i++) {
+    const pointData = scenarios[0].points[i];
     const point: any = {
-      name: `${scenarios[0].points[i]?.year}-${scenarios[0].points[i]?.month.toString().padStart(2, '0')}`,
+      name: pointData ? `${pointData.year}-${(pointData.month || 0).toString().padStart(2, '0')}` : '',
     };
+
     scenarios.forEach((s) => {
       point[s.name] = parseFloat(s.points[i]?.nominalWealth || '0');
     });
     chartData.push(point);
   }
 
+  const locale = currency === 'INR' ? 'en-IN' : 'en-US';
   const formatter = (value: number) => 
-    new Intl.NumberFormat('en-US', {
+    new Intl.NumberFormat(locale, {
       style: 'currency',
-      currency: 'USD',
+      currency: currency,
       notation: 'compact',
     }).format(value);
 
@@ -60,9 +67,12 @@ export const WealthForecastChart: React.FC<Props> = ({ scenarios, isLoading }) =
           <XAxis 
             dataKey="name" 
             stroke="#9CA3AF" 
-            tick={{ fontSize: 12 }}
-            interval={Math.floor(chartData.length / 10)}
+            tick={{ fontSize: 10 }}
+            tickFormatter={(value) => value.split('-')[0]}
+            interval="preserveStartEnd"
+            minTickGap={40}
           />
+
           <YAxis 
             stroke="#9CA3AF" 
             tickFormatter={formatter}
@@ -70,8 +80,9 @@ export const WealthForecastChart: React.FC<Props> = ({ scenarios, isLoading }) =
           />
           <Tooltip 
             contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '12px' }}
-            formatter={(value: number) => [new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)]}
+            formatter={(value: number) => [new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(value)]}
           />
+
           <Legend />
           {scenarios.map((s, index) => (
             <Line

@@ -4,7 +4,18 @@ export const getMonthlySummaryPipeline = (userId: string) => {
   if (!userId || !mongoose.Types.ObjectId.isValid(userId)) return [];
   return [
     { $match: { userId: new mongoose.Types.ObjectId(userId), isTransfer: false } },
-    { $addFields: { amountNum: { $toDouble: '$amount' } } },
+    { 
+      $addFields: { 
+        amountNum: { 
+          $convert: { 
+            input: '$amount', 
+            to: 'decimal', 
+            onError: mongoose.Types.Decimal128.fromString('0'), 
+            onNull: mongoose.Types.Decimal128.fromString('0') 
+          } 
+        } 
+      } 
+    },
     {
       $group: {
         _id: { month: { $month: '$date' }, year: { $year: '$date' } },
@@ -21,14 +32,20 @@ export const getMonthlySummaryPipeline = (userId: string) => {
         totalExpenses: { $toString: { $round: ['$totalExpenses', 2] } },
         netSavings: { $toString: { $round: [{ $subtract: ['$totalIncome', '$totalExpenses'] }, 2] } },
         savingsRate: {
-          $cond: [
-            { $gt: ['$totalIncome', 0] },
-            { $multiply: [{ $divide: [{ $subtract: ['$totalIncome', '$totalExpenses'] }, '$totalIncome'] }, 100] },
-            0,
-          ],
+          $convert: {
+            to: 'double',
+            input: {
+              $cond: [
+                { $gt: ['$totalIncome', 0] },
+                { $multiply: [{ $divide: [{ $subtract: ['$totalIncome', '$totalExpenses'] }, '$totalIncome'] }, 100] },
+                0,
+              ],
+            }
+          }
         },
       },
     },
+
     { $sort: { year: 1, month: 1 } },
   ];
 };

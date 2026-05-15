@@ -3,6 +3,10 @@ import { format } from 'date-fns';
 import { CategoryCode } from 'wealthlens-shared';
 import { CategorySelect } from './CategorySelect';
 import { updateTransaction } from '../../api/transactions.api';
+import { useSettingsStore } from '../../store/settings.store';
+
+import { Trash2 } from 'lucide-react';
+import { deleteTransaction } from '../../api/transactions.api';
 
 interface Props {
   transactions: any[];
@@ -11,12 +15,30 @@ interface Props {
 
 export const TransactionTable: React.FC<Props> = ({ transactions, onUpdate }) => {
   const [editingId, setEditingId] = React.useState<string | null>(null);
+  const currency = useSettingsStore((state) => state.currency);
 
   const handleCategoryUpdate = async (id: string, category: CategoryCode, subcategory?: string) => {
     await updateTransaction(id, { category, subcategory });
     setEditingId(null);
     onUpdate();
   };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this transaction?')) {
+      try {
+        await deleteTransaction(id);
+        onUpdate();
+      } catch (err: any) {
+        alert(err.response?.data?.error?.message || 'Failed to delete transaction');
+      }
+    }
+  };
+
+
+  const formatter = new Intl.NumberFormat(currency === 'INR' ? 'en-IN' : 'en-US', {
+    style: 'currency',
+    currency: currency,
+  });
 
   return (
     <div className="overflow-x-auto bg-gray-800 rounded-xl border border-gray-700">
@@ -27,6 +49,7 @@ export const TransactionTable: React.FC<Props> = ({ transactions, onUpdate }) =>
             <th className="px-6 py-4 font-semibold text-gray-400">Description</th>
             <th className="px-6 py-4 font-semibold text-gray-400">Category</th>
             <th className="px-6 py-4 font-semibold text-gray-400 text-right">Amount</th>
+            <th className="px-6 py-4 font-semibold text-gray-400 text-center w-20">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-700">
@@ -57,7 +80,16 @@ export const TransactionTable: React.FC<Props> = ({ transactions, onUpdate }) =>
                 )}
               </td>
               <td className={`px-6 py-4 text-right font-mono font-bold ${parseFloat(t.amount) < 0 ? 'text-red-400' : 'text-green-400'}`}>
-                {parseFloat(t.amount) < 0 ? '' : '+'}{t.amount}
+                {formatter.format(parseFloat(t.amount))}
+              </td>
+              <td className="px-6 py-4 text-center">
+                <button 
+                  onClick={() => handleDelete(t.id)}
+                  className="text-gray-500 hover:text-red-500 transition-colors p-2"
+                  title="Delete Transaction"
+                >
+                  <Trash2 size={16} />
+                </button>
               </td>
             </tr>
           ))}
@@ -66,3 +98,5 @@ export const TransactionTable: React.FC<Props> = ({ transactions, onUpdate }) =>
     </div>
   );
 };
+
+

@@ -7,8 +7,10 @@ export interface ForecastInput {
   monthlyExpenses: Record<string, string>; // CategoryCode -> Decimal string
   annualReturnRate: number;
   annualInflationRate: number;
+  annualIncomeGrowthRate?: number;
   horizonYears: number;
   scenarioName: string;
+
 }
 
 export interface ForecastDataPoint {

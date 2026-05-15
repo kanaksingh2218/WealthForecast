@@ -17,30 +17,37 @@ export const uploadImport = async (req: Request, res: Response, next: NextFuncti
 
     if (format === 'CSV' && !req.body.mapping) {
       const content = req.file.buffer.toString('utf-8');
-      const lines = content.split('\n').slice(0, 6);
+      const { headers, startIndex } = ImportService.getCSVHeaders(content);
+      const lines = content.split('\n').slice(startIndex, startIndex + 6);
+      
       return res.json({
         success: true,
         data: {
           format: 'CSV',
           needsMapping: true,
           sample: lines,
-          headers: lines[0].split(',').map((h: string) => h.trim()),
+          headers: headers,
         },
       });
     }
 
+
     let previewRows;
     if (format === 'CSV') {
       const mapping = JSON.parse(req.body.mapping);
+      console.log('[Import] Mapping received:', mapping);
       previewRows = await ImportService.parseCSV(req.file.buffer, mapping, userId);
     } else {
       previewRows = await ImportService.parseOFX(req.file.buffer, userId);
     }
 
+    console.log(`[Import] Successfully parsed ${previewRows.length} rows. Sample date:`, previewRows[0]?.date);
+
     res.json({
       success: true,
       data: { format, needsMapping: false, transactions: previewRows },
     });
+
   } catch (error) {
     next(error);
   }
