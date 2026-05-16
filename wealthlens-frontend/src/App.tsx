@@ -10,6 +10,8 @@ import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
 import { AuthGuard } from './components/ui/AuthGuard';
 import { useAuthStore } from './store/auth.store';
+import { Toaster } from 'sonner';
+
 
 const queryClient = new QueryClient();
 
@@ -26,7 +28,9 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <Toaster richColors position="top-right" theme="dark" />
       <Router>
+
         <Routes>
           <Route path="/login" element={<Login />} />
 <Route path="/register" element={<Register />} />

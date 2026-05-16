@@ -7,7 +7,6 @@ self.onmessage = (e: MessageEvent) => {
     header: true,
     skipEmptyLines: true,
     chunk: (results, parser) => {
-      // Process chunks if needed for very large files
       self.postMessage({ type: 'CHUNK', data: results.data });
     },
     complete: (results) => {

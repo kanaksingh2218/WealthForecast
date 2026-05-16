@@ -54,7 +54,6 @@ export class ForecastService {
 
       cumulativeSavings = cumulativeSavings.plus(monthlySavings);
 
-      // Adjust for inflation and income growth
       currentMonthlyExpenses = currentMonthlyExpenses.mul(new Decimal(1).plus(monthlyInflationRate));
       monthlyIncome = monthlyIncome.mul(new Decimal(1).plus(monthlyIncomeGrowthRate));
     }

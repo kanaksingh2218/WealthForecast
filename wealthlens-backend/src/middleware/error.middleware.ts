@@ -30,7 +30,7 @@ export class AppError extends Error {
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
   console.error(`[Error] ${err.message}`);
   if (err.stack) {
-    console.error(err.stack); // LOG THE FULL STACK TRACE
+    console.error(err.stack);
   }
 
   const statusCode = err.statusCode || 500;

@@ -10,7 +10,6 @@ export const getTrendPipeline = (userId: string, category?: string) => {
     match.category = category;
   }
 
-  // Last 12 months
   const twelveMonthsAgo = new Date();
   twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
   match.date = { $gte: twelveMonthsAgo };

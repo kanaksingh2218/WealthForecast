@@ -32,7 +32,6 @@ export const Import: React.FC = () => {
   };
 
 
-  // 1. Upload Mutation
   const uploadMutation = useMutation({
     mutationFn: (selectedFile: File) => uploadFile(selectedFile),
     onSuccess: (response) => {
@@ -47,7 +46,6 @@ export const Import: React.FC = () => {
     onError: (err: any) => setError(err.response?.data?.error?.message || 'Failed to upload file'),
   });
 
-  // 2. Process CSV with Mapping Mutation
   const processCSVMutation = useMutation({
     mutationFn: () => uploadFile(file!, mapping),
     onSuccess: (response) => {
@@ -57,16 +55,13 @@ export const Import: React.FC = () => {
     onError: (err: any) => setError(err.response?.data?.error?.message || 'Failed to process mapping'),
   });
 
-  // 3. Confirm Import Mutation
   const confirmMutation = useMutation({
     mutationFn: () => confirmTransactions(transactions),
     onSuccess: () => {
-      // YE HAI MAGIC: Dashboard aur Transactions table ko refresh karne ka signal
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
 
       setState('DONE');
-      // 3 second baad auto-dashboard par bhej do
       setTimeout(() => navigate('/'), 3000);
     },
     onError: (err: any) => {
@@ -85,7 +80,7 @@ export const Import: React.FC = () => {
         <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Upload CSV, OFX, or QIF files from your bank.</p>
       </div>
 
-      {/* Progress Stepper */}
+      { }
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 28 }}>
         {STEPS.map((step, i) => (
           <React.Fragment key={step}>
@@ -121,13 +116,13 @@ export const Import: React.FC = () => {
 
           <div className="wl-card" style={{ padding: 28 }}>
             {importMode === 'file' ? (
-              <FileDropzone onFileSelect={(f) => { 
+              <FileDropzone onFileSelect={(f) => {
                 if (f.name.endsWith('.pdf')) {
                   setError("PDFs are often encrypted or password-protected by banks. For better accuracy and privacy, please download the 'CSV' or 'Excel' version of your statement from your bank portal.");
                   return;
                 }
-                setFile(f); 
-                uploadMutation.mutate(f); 
+                setFile(f);
+                uploadMutation.mutate(f);
               }} />
             ) : (
               <div className="space-y-4">

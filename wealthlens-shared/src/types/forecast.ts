@@ -2,9 +2,9 @@ import { CategoryCode } from '../constants/categoryTaxonomy';
 
 export interface ForecastInput {
   userId: string;
-  startingNetWorth: string; // Decimal string
-  monthlyIncome: string; // Decimal string
-  monthlyExpenses: Record<string, string>; // CategoryCode -> Decimal string
+  startingNetWorth: string;
+  monthlyIncome: string;
+  monthlyExpenses: Record<string, string>;
   annualReturnRate: number;
   annualInflationRate: number;
   annualIncomeGrowthRate?: number;
@@ -16,9 +16,9 @@ export interface ForecastInput {
 export interface ForecastDataPoint {
   month: number;
   year: number;
-  nominalWealth: string; // Decimal string
-  realWealth: string; // Decimal string
-  cumulativeSavings: string; // Decimal string
-  portfolioValue: string; // Decimal string
-  inflationAdjustedExpenses: string; // Decimal string
+  nominalWealth: string;
+  realWealth: string;
+  cumulativeSavings: string;
+  portfolioValue: string;
+  inflationAdjustedExpenses: string;
 }

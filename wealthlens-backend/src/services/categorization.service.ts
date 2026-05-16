@@ -1,11 +1,13 @@
 import { CategoryCode } from 'wealthlens-shared';
 import { CategoryRule } from '../models/CategoryRule.model';
+import { AIService } from './ai.service';
+
 
 export interface CategorizationResult {
   category: CategoryCode;
   subcategory?: string;
   merchantName?: string;
-  confidence: number; // 0 to 1
+  confidence: number;
 }
 
 export class CategorizationService {
@@ -27,7 +29,6 @@ export class CategorizationService {
           const regex = new RegExp(rule.pattern, 'i');
           match = regex.test(target);
         } catch (e) {
-          // Skip invalid regex
         }
       } else {
         match = target.includes(pattern);
@@ -43,11 +44,23 @@ export class CategorizationService {
       }
     }
 
+    const aiResult = await AIService.categorizeTransaction(description, merchantName);
+
+    if (aiResult.confidence > 0.6) {
+      return {
+        category: aiResult.category,
+        subcategory: aiResult.subcategory,
+        merchantName: merchantName,
+        confidence: aiResult.confidence,
+      };
+    }
+
     return {
       category: 'Uncategorized',
       confidence: 0.5,
     };
   }
+
 
 
   static async learnRule(

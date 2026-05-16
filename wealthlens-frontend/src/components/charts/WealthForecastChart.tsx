@@ -34,7 +34,6 @@ export const WealthForecastChart: React.FC<Props> = ({ scenarios, isLoading }) =
     );
   }
 
-  // Transform data for Recharts: [{ date: '2025-01', scenario1: 100, scenario2: 120 }, ...]
   const chartData: any[] = [];
   const maxPoints = Math.max(...scenarios.map((s) => s.points.length));
 
@@ -51,7 +50,7 @@ export const WealthForecastChart: React.FC<Props> = ({ scenarios, isLoading }) =
   }
 
   const locale = currency === 'INR' ? 'en-IN' : 'en-US';
-  const formatter = (value: number) => 
+  const formatter = (value: number) =>
     new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: currency,
@@ -64,21 +63,21 @@ export const WealthForecastChart: React.FC<Props> = ({ scenarios, isLoading }) =
       <ResponsiveContainer width="100%" height="85%">
         <LineChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-          <XAxis 
-            dataKey="name" 
-            stroke="#9CA3AF" 
+          <XAxis
+            dataKey="name"
+            stroke="#9CA3AF"
             tick={{ fontSize: 10 }}
             tickFormatter={(value) => value.split('-')[0]}
             interval="preserveStartEnd"
             minTickGap={40}
           />
 
-          <YAxis 
-            stroke="#9CA3AF" 
+          <YAxis
+            stroke="#9CA3AF"
             tickFormatter={formatter}
             tick={{ fontSize: 12 }}
           />
-          <Tooltip 
+          <Tooltip
             contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '12px' }}
             formatter={(value: number) => [new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(value)]}
           />

@@ -41,15 +41,15 @@ export const TransactionTable: React.FC<Props> = ({ transactions, onUpdate }) =>
   });
 
   return (
-    <div className="overflow-x-auto bg-gray-800 rounded-xl border border-gray-700">
-      <table className="min-w-full text-left">
-        <thead className="bg-gray-900/50 border-b border-gray-700">
+    <div className="overflow-x-auto overflow-y-auto max-h-[600px] bg-gray-800 rounded-xl border border-gray-700 custom-scrollbar">
+      <table className="min-w-full text-left relative">
+        <thead className="bg-gray-900 border-b border-gray-700 sticky top-0 z-10 shadow-sm">
           <tr>
-            <th className="px-6 py-4 font-semibold text-gray-400">Date</th>
-            <th className="px-6 py-4 font-semibold text-gray-400">Description</th>
-            <th className="px-6 py-4 font-semibold text-gray-400">Category</th>
-            <th className="px-6 py-4 font-semibold text-gray-400 text-right">Amount</th>
-            <th className="px-6 py-4 font-semibold text-gray-400 text-center w-20">Actions</th>
+            <th className="px-6 py-4 font-semibold text-gray-400 bg-gray-900">Date</th>
+            <th className="px-6 py-4 font-semibold text-gray-400 bg-gray-900">Description</th>
+            <th className="px-6 py-4 font-semibold text-gray-400 bg-gray-900">Category</th>
+            <th className="px-6 py-4 font-semibold text-gray-400 text-right bg-gray-900">Amount</th>
+            <th className="px-6 py-4 font-semibold text-gray-400 text-center w-20 bg-gray-900">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-700">

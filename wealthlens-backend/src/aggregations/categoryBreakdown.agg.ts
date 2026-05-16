@@ -10,7 +10,11 @@ export const getCategoryBreakdownPipeline = (userId: string, dateFrom?: Date, da
     { $addFields: { amountNum: { $toDouble: '$amount' } } },
     {
       $group: {
-        _id: '$category',
+        _id: { 
+          category: '$category',
+          month: { $month: '$date' },
+          year: { $year: '$date' }
+        },
         totalAmount: { $sum: { $abs: '$amountNum' } },
         transactionCount: { $sum: 1 },
       },
@@ -18,11 +22,14 @@ export const getCategoryBreakdownPipeline = (userId: string, dateFrom?: Date, da
     {
       $project: {
         _id: 0,
-        category: '$_id',
+        category: '$_id.category',
+        month: '$_id.month',
+        year: '$_id.year',
         totalAmount: { $toString: { $round: ['$totalAmount', 2] } },
         transactionCount: 1,
       },
     },
+
     { $sort: { totalAmount: -1 } },
   ];
 };

@@ -4,10 +4,14 @@ import { SpendingPieChart } from '../components/charts/SpendingPieChart';
 import { IncomeExpenseBarChart } from '../components/charts/IncomeExpenseBarChart';
 import { SavingsGauge } from '../components/charts/SavingsGauge';
 import { useAnalytics } from '../hooks/useAnalytics';
+import { useSubscriptions } from '../hooks/useSubscriptions';
+import { SubscriptionCard } from '../components/ui/SubscriptionCard';
 import { Link } from 'react-router-dom';
 
 export const Dashboard: React.FC = () => {
   const { summary, categories, isLoading } = useAnalytics();
+  const { data: subscriptions, isLoading: isSubsLoading } = useSubscriptions();
+
   const [selectedMonthIdx, setSelectedMonthIdx] = React.useState<number | null>(null);
 
   const months = summary.data?.data || [];
@@ -79,13 +83,22 @@ export const Dashboard: React.FC = () => {
 
       <div className="wl-grid-2 mb-5">
         <IncomeExpenseBarChart data={summary.data?.data || []} isLoading={isLoading} />
-        <SpendingPieChart data={categories.data?.data || []} isLoading={isLoading} />
+        <SpendingPieChart 
+          data={categories.data?.data || []} 
+          isLoading={isLoading} 
+          month={latestMonth?.month}
+          year={latestMonth?.year}
+        />
       </div>
+
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
         <SavingsGauge savingsRate={latestMonth?.savingsRate || 0} isLoading={isLoading} />
+        
+        <SubscriptionCard subscriptions={subscriptions || []} isLoading={isSubsLoading} />
 
         <div className="wl-card" style={{ padding: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+
           <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.06 }} viewBox="0 0 400 120" preserveAspectRatio="none">
             <path d="M0 80 L50 70 L100 75 L150 55 L200 45 L250 30 L300 20 L350 10 L400 5" stroke="#3B82F6" strokeWidth="2" fill="none"/>
             <path d="M0 80 L50 70 L100 75 L150 55 L200 45 L250 30 L300 20 L350 10 L400 5 L400 120 L0 120Z" fill="#3B82F6"/>

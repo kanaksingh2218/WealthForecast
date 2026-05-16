@@ -7,7 +7,6 @@ import { TransactionForm } from '../components/forms/TransactionForm';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../api/client';
 
-
 export const Transactions: React.FC = () => {
   const queryClient = useQueryClient();
   const [filters, setFilters] = React.useState({ page: 1, limit: 50, search: '', dateFrom: '', dateTo: '', isTransfer: 'false' });
@@ -24,36 +23,57 @@ export const Transactions: React.FC = () => {
   });
 
   const handleFilterChange = (f: any) => setFilters(prev => ({ ...prev, ...f, page: 1 }));
-
   const handlePageChange = (p: number) => setFilters(prev => ({ ...prev, page: p }));
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto' }} className="animate-fadeUp">
+      { }
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>Transactions</h1>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>All your financial activity in one place.</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ padding: '6px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-            {data?.data?.length || 0} of {data?.meta?.total || 0} transactions
-          </div>
-          <button 
-            className="wl-btn-primary" 
+          <button
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-white hover:bg-white/10 transition-colors"
+            onClick={async () => {
+              const { toast } = await import('sonner');
+              const id = toast.loading('Generating Excel report...');
+              try {
+                const response = await apiClient.get('/export/excel', { responseType: 'blob' });
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'WealthLens_Report.xlsx');
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                toast.success('Report downloaded!', { id });
+              } catch (e) {
+                toast.error('Failed to generate report', { id });
+              }
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v8M4 7l3 3 3-3M2 12h10" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            Export Excel
+          </button>
+          <button
+            className="wl-btn-primary"
             style={{ padding: '8px 16px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}
             onClick={() => setShowAddModal(true)}
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="white" strokeWidth="2" strokeLinecap="round" /></svg>
             New Transaction
           </button>
         </div>
-
       </div>
 
+      { }
       <div className="wl-card" style={{ padding: 16, marginBottom: 16 }}>
         <TransactionFilters onFilterChange={handleFilterChange} />
       </div>
 
+      { }
       {isLoading ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '80px 0', gap: 16 }}>
           <div style={{ width: 32, height: 32, border: '2px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--accent-blue)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
@@ -72,21 +92,20 @@ export const Transactions: React.FC = () => {
         </>
       )}
 
+      { }
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="wl-card w-full max-w-md p-8 shadow-2xl relative">
-            <h2 className="text-xl font-bold text-white mb-6">Add Transaction</h2>
-            <TransactionForm 
-              onSubmit={(v) => addMutation.mutate(v)} 
-              onCancel={() => setShowAddModal(false)} 
+          <div className="wl-card w-full max-w-md p-5 shadow-2xl relative">
+            <h2 className="text-lg font-bold text-white mb-3">Add Transaction</h2>
+            <TransactionForm
+              onSubmit={(v) => addMutation.mutate(v)}
+              onCancel={() => setShowAddModal(false)}
               isPending={addMutation.isPending}
               error={(addMutation.error as any)?.response?.data?.error?.message || (addMutation.error as any)?.message}
             />
           </div>
         </div>
       )}
-
     </div>
-
   );
 };

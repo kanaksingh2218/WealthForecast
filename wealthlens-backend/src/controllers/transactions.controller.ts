@@ -103,8 +103,7 @@ export const createTransaction = async (req: Request, res: Response, next: NextF
     if (!userId) return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Not authenticated' } });
 
     const { date, description, amount, category, subcategory, merchantName } = req.body;
-    
-    // Simple manual entry hash
+
     const hash = generateTransactionHash(new Date(date), amount, description + '_manual_' + Date.now());
 
     const transaction = await Transaction.create({
@@ -120,7 +119,6 @@ export const createTransaction = async (req: Request, res: Response, next: NextF
       isTransfer: false
     });
 
-    // Invalidate analytics cache
     await CacheService.invalidatePattern(`wl:summary:${userId}:*`);
     await CacheService.invalidatePattern(`wl:categories:${userId}:*`);
 
@@ -142,7 +140,6 @@ export const deleteTransaction = async (req: Request, res: Response, next: NextF
       return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Transaction not found' } });
     }
 
-    // Invalidate analytics cache
     await CacheService.invalidatePattern(`wl:summary:${userId}:*`);
     await CacheService.invalidatePattern(`wl:categories:${userId}:*`);
 

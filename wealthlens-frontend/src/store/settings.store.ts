@@ -11,7 +11,7 @@ interface SettingsState {
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
-      currency: 'INR', // Default to INR as per user request
+      currency: 'INR',
       setCurrency: (currency: Currency) => set({ currency }),
     }),
     {

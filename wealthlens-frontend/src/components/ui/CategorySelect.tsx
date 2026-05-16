@@ -19,7 +19,8 @@ export const CategorySelect: React.FC<Props> = ({ value, onSelect, className }) 
     <div className={`relative ${className}`}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full text-left bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500"
+        className="w-full text-left bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.1)] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500 transition-colors hover:bg-[rgba(255,255,255,0.05)]"
+        type="button"
       >
         {value || 'Select Category'}
       </button>
@@ -33,7 +34,8 @@ export const CategorySelect: React.FC<Props> = ({ value, onSelect, className }) 
                   onSelect(cat as CategoryCode);
                   setIsOpen(false);
                 }}
-                className="w-full text-left px-4 py-2 font-bold hover:bg-gray-700 text-blue-400"
+                className="w-full text-left px-3 py-1.5 font-bold hover:bg-white/10 text-[var(--accent-blue)] text-[11px] uppercase tracking-wider"
+                type="button"
               >
                 {cat}
               </button>
@@ -44,7 +46,8 @@ export const CategorySelect: React.FC<Props> = ({ value, onSelect, className }) 
                     onSelect(cat as CategoryCode, sub);
                     setIsOpen(false);
                   }}
-                  className="w-full text-left px-6 py-1 text-sm hover:bg-gray-700 text-gray-300"
+                  className="w-full text-left px-5 py-1 text-xs hover:bg-white/5 text-gray-300"
+                  type="button"
                 >
                   {sub}
                 </button>

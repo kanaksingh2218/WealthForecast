@@ -3,7 +3,7 @@ import { CurrencyCode } from '../constants/currencyCodes';
 
 export interface CategorySummary {
   category: CategoryCode;
-  totalAmount: string; // Decimal string
+  totalAmount: string;
   currency: CurrencyCode;
   transactionCount: number;
   percentOfIncome: number;
@@ -13,8 +13,8 @@ export interface CategorySummary {
 export interface MonthlySummary {
   month: number;
   year: number;
-  totalIncome: string; // Decimal string
-  totalExpenses: string; // Decimal string
-  netSavings: string; // Decimal string
+  totalIncome: string;
+  totalExpenses: string;
+  netSavings: string;
   savingsRate: number;
 }

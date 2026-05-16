@@ -9,7 +9,7 @@ export interface AccountBalance {
   institution: string;
   type: AccountType;
   currency: CurrencyCode;
-  balance: string; // Decimal string
+  balance: string;
   balanceDate: Date;
   isManual: boolean;
 }

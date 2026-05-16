@@ -29,7 +29,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
 
     const { accessToken, refreshToken } = generateTokens(user.id);
     const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
-    
+
     user.refreshTokenHash = refreshTokenHash;
     await user.save();
 
@@ -37,7 +37,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 15 * 60 * 1000, // 15m
+      maxAge: 15 * 60 * 1000,
     });
 
     res.cookie('refreshToken', refreshToken, {
@@ -45,7 +45,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
       secure: env.NODE_ENV === 'production',
       sameSite: 'strict',
       path: '/api/auth/refresh',
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30d
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
     res.status(201).json({
@@ -103,7 +103,7 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
       throw new AppError(ErrorCode.UNAUTHORIZED, 'No refresh token provided', 401);
     }
 
-    const decoded = jwt.verify(refreshToken, env.JWT_PRIVATE_KEY || env.COOKIE_SECRET) as any;    
+    const decoded = jwt.verify(refreshToken, env.JWT_PRIVATE_KEY || env.COOKIE_SECRET) as any;
     const user = await User.findById(decoded.id).select('+refreshTokenHash');
 
     if (!user || !user.refreshTokenHash || !(await bcrypt.compare(refreshToken, user.refreshTokenHash))) {
